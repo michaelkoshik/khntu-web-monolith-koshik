@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  fullName  String
+  role      String    @default("USER") // USER, MANAGER, ADMIN
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model Venue {
+  id       Int     @id @default(autoincrement())
+  name     String
+  city     String
+  address  String
+  capacity Int
+  events   Event[]
+}
+
+model Event {
+  id               Int             @id @default(autoincrement())
+  venueId          Int
+  title            String
+  eventDate        DateTime
+  basePrice        Float
+  availableTickets Int
+  venue            Venue           @relation(fields: [venueId], references: [id])
+  bookingTickets   BookingTicket[]
+}
+
+model Booking {
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  status      String          @default("PENDING") // PENDING, PAID, CANCELLED
+  totalAmount Float
+  user        User            @relation(fields: [userId], references: [id])
+  tickets     BookingTicket[]
+  createdAt   DateTime        @default(now())
+}
+
+model BookingTicket {
+  id              Int     @id @default(autoincrement())
+  bookingId       Int
+  eventId         Int
+  quantity        Int
+  priceAtPurchase Float
+  seatZone        String  @default("STANDARD")
+  booking         Booking @relation(fields: [bookingId], references: [id])
+  event           Event   @relation(fields: [eventId], references: [id])
+}
