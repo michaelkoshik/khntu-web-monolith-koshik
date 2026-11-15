@@ -1,0 +1,74 @@
+{
+    "info":  {
+                 "name":  "EventTicketing API - Milestone 1 (Lab 2)",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Health Check",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/health"
+                                 }
+                 },
+                 {
+                     "name":  "Get All Events",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/events"
+                                 }
+                 },
+                 {
+                     "name":  "Get Event By ID (200 OK)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/events/1"
+                                 }
+                 },
+                 {
+                     "name":  "Get Event By ID (404 Not Found)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/events/999"
+                                 }
+                 },
+                 {
+                     "name":  "Create Event (201 Created)",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"venueId\":2,\"title\":\"жазовий вечір у філармонії\",\"eventDate\":\"2026-12-25T19:00:00Z\",\"basePrice\":550,\"availableTickets\":120}"
+                                              },
+                                     "url":  "http://localhost:3000/api/v1/events"
+                                 }
+                 },
+                 {
+                     "name":  "Get All Venues",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/venues"
+                                 }
+                 },
+                 {
+                     "name":  "Get Venue By ID (200 OK)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/venues/1"
+                                 }
+                 },
+                 {
+                     "name":  "Get Venue By ID (404 Not Found)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:3000/api/v1/venues/999"
+                                 }
+                 }
+             ]
+}
