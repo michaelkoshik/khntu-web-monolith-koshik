@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EventTicketing — Клієнтський UI (ХНТУ)</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 30px auto; max-width: 820px; background: #f4f6f8; color: #1e293b; }
+    h1 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 10px; }
+    .card { background: #ffffff; padding: 20px 24px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; min-width: 220px; }
+    button { background: #0284c7; color: white; border: none; padding: 9px 16px; cursor: pointer; border-radius: 6px; font-weight: 600; transition: 0.2s; }
+    button:hover { background: #0369a1; }
+    button.secondary { background: #475569; }
+    button.secondary:hover { background: #334155; }
+    button.book-btn { background: #059669; padding: 6px 12px; font-size: 13px; margin-left: 12px; }
+    ul { list-style: none; padding: 0; margin-top: 14px; }
+    li { padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .status { margin-top: 10px; font-weight: 600; color: #0284c7; }
+    .error { color: #dc2626; }
+  </style>
+</head>
+<body>
+  <h1>EventTicketing — Панель управління проєкту ХНТУ</h1>
+
+  <div class="card">
+    <h2>1. Автентифікація (JWT + Silent Refresh)</h2>
+    <div class="row">
+      <input type="email" id="email" placeholder="Email" value="student.user@khntu.edu.ua">
+      <input type="password" id="password" placeholder="Пароль" value="StrongPassword123!">
+      <button onclick="login()">Увійти</button>
+      <button class="secondary" onclick="refreshTokenFlow()">Оновити токен (Refresh)</button>
+    </div>
+    <p id="authStatus" class="status">Статус: не автентифіковано</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Каталог заходів та швидке бронювання (Fetch API)</h2>
+    <button onclick="loadEvents()">Оновити список заходів</button>
+    <ul id="eventList"></ul>
+    <p id="bookingStatus" class="status"></p>
+  </div>
+
+  <script>
+    let accessToken = '';
+    let refreshToken = '';
+    let currentUserId = null;
+
+    async function fetchWithAutoRefresh(url, options = {}) {
+      options.headers = {
+        ...(options.headers || {}),
+        ...(accessToken ? { 'Authorization': 'Bearer ' + accessToken } : {})
+      };
+      let res = await fetch(url, options);
+      if (res.status === 401 && refreshToken) {
+        const refreshed = await refreshTokenFlow(true);
+        if (refreshed) {
+          options.headers['Authorization'] = 'Bearer ' + accessToken;
+          res = await fetch(url, options);
+        }
+      }
+      return res;
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const statusEl = document.getElementById('authStatus');
+
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        accessToken = data.token;
+        refreshToken = data.refreshToken;
+        currentUserId = data.user.id;
+        statusEl.className = 'status';
+        statusEl.innerText = 'Успішний вхід! Користувач: ' + data.user.email + ' (Роль: ' + data.user.role + '). Access Token отримано.';
+        loadEvents();
+      } else {
+        statusEl.className = 'status error';
+        statusEl.innerText = 'Помилка входу: ' + data.message;
+      }
+    }
+
+    async function refreshTokenFlow(silent = false) {
+      if (!refreshToken) return false;
+      const res = await fetch('/api/v1/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        accessToken = data.token;
+        refreshToken = data.refreshToken;
+        if (!silent) {
+          document.getElementById('authStatus').innerText = 'Access Token успішно оновлено через Refresh Token!';
+        }
+        return true;
+      }
+      return false;
+    }
+
+    async function loadEvents() {
+      const res = await fetchWithAutoRefresh('/api/v1/events?page=1&limit=10');
+      const data = await res.json();
+      const list = document.getElementById('eventList');
+      list.innerHTML = '';
+
+      if (data.items) {
+        data.items.forEach(item => {
+          const li = document.createElement('li');
+          const info = document.createElement('span');
+          info.innerText = item.title + ' — ' + item.basePrice + ' грн (доступно квитків: ' + item.availableTickets + ')';
+          const btn = document.createElement('button');
+          btn.className = 'book-btn';
+          btn.innerText = 'Забронювати 1 квиток';
+          btn.onclick = () => quickBook(item.id);
+          li.appendChild(info);
+          li.appendChild(btn);
+          list.appendChild(li);
+        });
+      }
+    }
+
+    async function quickBook(eventId) {
+      const statusEl = document.getElementById('bookingStatus');
+      if (!accessToken || !currentUserId) {
+        statusEl.className = 'status error';
+        statusEl.innerText = 'Спочатку виконайте вхід для бронювання квитка!';
+        return;
+      }
+      const res = await fetchWithAutoRefresh('/api/v1/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          items: [{ eventId: eventId, quantity: 1, seatZone: 'STANDARD' }]
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        statusEl.className = 'status';
+        statusEl.innerText = 'Бронювання #' + data.data.id + ' успішно створено! Сума: ' + data.data.totalAmount + ' грн.';
+        loadEvents();
+      } else {
+        statusEl.className = 'status error';
+        statusEl.innerText = 'Помилка бронювання: ' + data.message;
+      }
+    }
+
+    loadEvents();
+  </script>
+</body>
+</html>

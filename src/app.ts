@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
 import { loggerMiddleware } from './middlewares/logger.middleware';
 import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/AppError';
@@ -13,6 +14,9 @@ const app: Express = express();
 app.use(cors());
 app.use(express.json());
 app.use(loggerMiddleware);
+
+// Роздача статичних файлів клієнтського UI (ЛР №6)
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/api/v1/health', (req: Request, res: Response) => {
   const memory = process.memoryUsage();
