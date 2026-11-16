@@ -1,0 +1,75 @@
+{
+    "info":  {
+                 "name":  "EventTicketing API - Milestone 2 (Lab 5 Auth \u0026 RBAC)",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "variable":  [
+                     {
+                         "key":  "accessToken",
+                         "value":  ""
+                     }
+                 ],
+    "item":  [
+                 {
+                     "name":  "Register User",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"email\":\"student.user@khntu.edu.ua\",\"password\":\"StrongPassword123!\",\"fullName\":\"Тестовий Користувач\"}"
+                                              },
+                                     "url":  "http://localhost:3000/api/v1/auth/register"
+                                 }
+                 },
+                 {
+                     "name":  "Login User",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"email\":\"student.user@khntu.edu.ua\",\"password\":\"StrongPassword123!\"}"
+                                              },
+                                     "url":  "http://localhost:3000/api/v1/auth/login"
+                                 }
+                 },
+                 {
+                     "name":  "Create Event (Admin Only - RBAC)",
+                     "request":  {
+                                     "method":  "POST",
+                                     "auth":  {
+                                                  "type":  "bearer",
+                                                  "bearer":  [
+                                                                 {
+                                                                     "key":  "token",
+                                                                     "value":  "{{accessToken}}",
+                                                                     "type":  "string"
+                                                                 }
+                                                             ]
+                                              },
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"venueId\":1,\"title\":\"Вечір стендап-комедії\",\"eventDate\":\"2026-12-28T19:00:00Z\",\"basePrice\":450,\"availableTickets\":150}"
+                                              },
+                                     "url":  "http://localhost:3000/api/v1/events"
+                                 }
+                 }
+             ]
+}

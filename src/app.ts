@@ -3,6 +3,7 @@ import cors from 'cors';
 import { loggerMiddleware } from './middlewares/logger.middleware';
 import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/AppError';
+import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import venueRoutes from './routes/venue.routes';
 import bookingRoutes from './routes/booking.routes';
@@ -27,6 +28,7 @@ app.get('/api/v1/health', (req: Request, res: Response) => {
   });
 });
 
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/venues', venueRoutes);
 app.use('/api/v1/bookings', bookingRoutes);

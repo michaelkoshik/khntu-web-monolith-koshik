@@ -14,7 +14,8 @@ model User {
   fullName  String
   role      String    @default("USER") // USER, MANAGER, ADMIN
   bookings  Booking[]
-  createdAt DateTime  @default(now())
+  refreshToken String?
+  createdAt    DateTime  @default(now())
 
   @@index([email])
 }
